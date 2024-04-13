@@ -3,18 +3,18 @@ import Foundation
 // Define a custom operator that doesn't conflict with existing operators
 infix operator /? : AdditionPrecedence
 
-func /? (lhs: URL, rhs: [String: String?]) -> URL {
+public func /? (lhs: URL, rhs: [String: String?]) -> URL {
 	return lhs.appendingQueryParameters(rhs) ?? lhs
 }
 
-extension Optional where Wrapped == URL {
+public extension Optional where Wrapped == URL {
 	static func /? (lhs: Optional<URL>, rhs: [String: String?]) -> URL? {
 		return lhs?.appendingQueryParameters(rhs)
 	}
 }
 
 // Extend URL to append query parameters
-extension URL {
+public extension URL {
 	func appendingQueryParameters(_ parameters: [String: String?]) -> URL? {
 		guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
 			return nil
