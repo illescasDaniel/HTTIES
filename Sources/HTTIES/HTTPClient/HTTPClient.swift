@@ -1,15 +1,15 @@
 import Foundation
 
 public protocol HTTPClient {
-	func data(for httpRequest: HTTPURLRequest) async throws -> (Data, HTTPURLResponse)
-	
-	func data<T: Decodable>(
-		for httpRequest: HTTPURLRequest,
+	func sendRequest(_ httpURLRequest: HTTPURLRequest) async throws -> (Data, HTTPURLResponse)
+
+	func sendRequest<T: Decodable>(
+		_ httpURLRequest: HTTPURLRequest,
 		decoding: T.Type
 	) async throws -> T
 
-	func data<T: Decodable>(
-		for httpRequest: HTTPURLRequest,
+	func sendRequest<T: Decodable>(
+		_ httpURLRequest: HTTPURLRequest,
 		decoding: T.Type,
 		jsonDecoder: JSONDecoder
 	) async throws -> T
@@ -17,12 +17,19 @@ public protocol HTTPClient {
 
 public extension HTTPClient {
 
-	func data<T: Decodable>(
-		for httpRequest: HTTPURLRequest,
+	func sendRequest<T: Decodable>(
+		_ httpURLRequest: HTTPURLRequest,
+		decoding: T.Type
+	) async throws -> T {
+		try await self.sendRequest(httpURLRequest, decoding: T.self, jsonDecoder: JSONDecoder())
+	}
+
+	func sendRequest<T: Decodable>(
+		_ httpURLRequest: HTTPURLRequest,
 		decoding: T.Type,
 		jsonDecoder: JSONDecoder
 	) async throws -> T {
-		let (data, response) = try await self.data(for: httpRequest)
+		let (data, response) = try await self.sendRequest(httpURLRequest)
 		if (200...299).contains(response.statusCode) {
 			let value = try jsonDecoder.decode(T.self, from: data)
 			return value
@@ -31,10 +38,4 @@ public extension HTTPClient {
 		}
 	}
 
-	func data<T: Decodable>(
-		for httpRequest: HTTPURLRequest,
-		decoding: T.Type
-	) async throws -> T {
-		try await self.data(for: httpRequest, decoding: T.self, jsonDecoder: JSONDecoder())
-	}
 }

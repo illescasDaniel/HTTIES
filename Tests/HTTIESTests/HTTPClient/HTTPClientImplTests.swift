@@ -9,7 +9,7 @@ final class HTTPClientImplTests: XCTestCase {
 	override func setUp() {
 		super.setUp()
 		mockDataHandler = MockDataHandler()
-		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, interceptors: [])
+		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler)
 	}
 
 	override func tearDown() {
@@ -24,7 +24,7 @@ final class HTTPClientImplTests: XCTestCase {
 		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
-		let (data, response) = try await httpClient.data(for: testRequest)
+		let (data, response) = try await httpClient.sendRequest(testRequest)
 		XCTAssertNotNil(data)
 		XCTAssertEqual(response.statusCode, 200)
 	}
@@ -35,27 +35,68 @@ final class HTTPClientImplTests: XCTestCase {
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 		do {
-			let _ = try await httpClient.data(for: testRequest)
+			let _ = try await httpClient.sendRequest(testRequest)
 			XCTFail("Expected failure did not occur")
 		} catch {
 			// Expected failure
 		}
 	}
 
-	// Test a data request with interceptors
-	func testDataRequestWithInterceptors() async throws {
+	// Test a data request with interceptor
+	func testDataRequestWithRequestInterceptor() async throws {
 		// Set up mock data handler for a successful response
 		mockDataHandler.responseData = Data("mock response".utf8)
 		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
 
 		// Assuming MockInterceptor implementation from previous context
-		let mockInterceptor = MockInterceptor()
-		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, interceptors: [mockInterceptor])
+		let mockInterceptor = MockRequestInterceptor()
+		mockInterceptor.mockRequest = URLRequest(url: try XCTUnwrap(URL(string: "https://example2.com")))
+		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, requestInterceptors: [mockInterceptor])
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
-		let (data, _) = try await httpClient.data(for: testRequest)
+		let (data, _) = try await httpClient.sendRequest(testRequest)
 		XCTAssertNotNil(data)
-		XCTAssertEqual(mockInterceptor.interceptedRequestURL, testRequest.urlRequest.url)
+		XCTAssertEqual(mockInterceptor.mockRequest, httpClient.currentRequest)
+		XCTAssertNotEqual(mockInterceptor.mockRequest, testRequest.urlRequest)
+	}
+
+	func testDataRequestWithResponseInterceptor() async throws {
+		// Set up mock data handler for a successful response
+		mockDataHandler.responseData = Data("mock response".utf8)
+		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
+
+		// Assuming MockInterceptor implementation from previous context
+		let mockInterceptor = MockResponseInterceptor()
+		mockInterceptor.mockData = Data([1])
+		mockInterceptor.mockResponse = try XCTUnwrap(HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example2.com")), statusCode: 400, httpVersion: nil, headerFields: nil))
+		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, responseInterceptors: [mockInterceptor])
+
+		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
+		let (data, response) = try await httpClient.sendRequest(testRequest)
+		XCTAssertEqual(mockInterceptor.mockData, data)
+		XCTAssertEqual(mockInterceptor.mockResponse, response)
+		XCTAssertNotEqual(mockInterceptor.mockData, mockDataHandler.responseData)
+		XCTAssertNotEqual(mockInterceptor.mockResponse, mockDataHandler.response)
+	}
+
+	func testDataRequestWithResponseErrorInterceptor() async throws {
+		// Set up mock data handler for a successful response
+		mockDataHandler.responseData = Data("mock response".utf8)
+		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
+
+		// Assuming MockInterceptor implementation from previous context
+		let mockInterceptor = MockResponseInterceptor()
+		mockInterceptor.mockError = URLError(.badServerResponse)
+		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, responseInterceptors: [mockInterceptor])
+
+		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
+
+		do {
+			_ = try await httpClient.sendRequest(testRequest)
+			XCTFail()
+		} catch {
+			XCTAssertEqual(error as? URLError, URLError(.badServerResponse))
+		}
 	}
 
 	// Test decoding data into a Decodable object
@@ -64,7 +105,7 @@ final class HTTPClientImplTests: XCTestCase {
 		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
-		let decodedObject: MockCodable = try await httpClient.data(for: testRequest, decoding: MockCodable.self)
+		let decodedObject: MockCodable = try await httpClient.sendRequest(testRequest, decoding: MockCodable.self)
 		XCTAssertEqual(decodedObject.property, "value")
 	}
 
@@ -75,7 +116,7 @@ final class HTTPClientImplTests: XCTestCase {
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 		do {
-			_ = try await httpClient.data(for: testRequest, decoding: MockCodable.self)
+			_ = try await httpClient.sendRequest(testRequest, decoding: MockCodable.self)
 			XCTFail("It should throw")
 		} catch {
 			if case AppNetworkResponseError.unexpected(let statusCode) = error {
