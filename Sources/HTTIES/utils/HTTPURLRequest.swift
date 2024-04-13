@@ -3,6 +3,10 @@ import Foundation
 public struct HTTPURLRequest {
 	public let urlRequest: URLRequest
 
+	public init(urlRequest: URLRequest) {
+		self.urlRequest = urlRequest
+	}
+
 	public init(
 		url: URL,
 		httpMethod: HTTPMethod = .get,
