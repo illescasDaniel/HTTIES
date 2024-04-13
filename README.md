@@ -94,7 +94,7 @@ A simple request interceptor that modifies the Authorization http header to incl
 ```swift
 import HTTIES
 
-final class AuthTokenInterceptor: RequestInterceptor {
+final class AuthTokenInterceptor: HTTPInoutRequestInterceptor {
     var token: String
 
     init(token: String) {
