@@ -11,7 +11,7 @@ public final class HTTPClientImpl: HTTPClient {
 	}
 
 	public func data(for httpRequest: HTTPURLRequest) async throws -> (Data, HTTPURLResponse) {
-		var handler = HTTPRequestChain { request in
+		var requestChain = HTTPRequestChain { request in
 			let (data, response) = try await self.httpDataRequestHandler.data(for: request.urlRequest)
 			guard let httpResponse = response as? HTTPURLResponse else {
 				throw URLError(.cannotParseResponse)
@@ -21,14 +21,14 @@ public final class HTTPClientImpl: HTTPClient {
 
 		var lastResponse: (Data, HTTPURLResponse)?
 		for interceptor in interceptors {
-			let response = try await interceptor.data(for: httpRequest, httpHandler: handler)
+			let response = try await interceptor.data(for: httpRequest, httpRequestChain: requestChain)
 			lastResponse = response
-			handler = HTTPRequestChain { _ in response }
+			requestChain = HTTPRequestChain { _ in response }
 		}
 
 		if let lastResponse {
 			return lastResponse
 		}
-		return try await handler.proceed(httpRequest)
+		return try await requestChain.proceed(httpRequest)
 	}
 }

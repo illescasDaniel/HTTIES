@@ -4,9 +4,9 @@ import Foundation
 final class MockInterceptor: HTTPInterceptor {
 	var interceptedRequestURL: URL?
 
-	func data(for httpRequest: HTTPURLRequest, httpHandler: HTTPRequestChain) async throws -> (Data, HTTPURLResponse) {
+	func data(for httpRequest: HTTPURLRequest, httpRequestChain: HTTPRequestChain) async throws -> (Data, HTTPURLResponse) {
 		interceptedRequestURL = httpRequest.urlRequest.url
-		let (data, response) = try await httpHandler.proceed(httpRequest)
+		let (data, response) = try await httpRequestChain.proceed(httpRequest)
 		return (data, response)
 	}
 }
