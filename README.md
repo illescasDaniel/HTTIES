@@ -16,7 +16,7 @@ A small library for easy network requests.
 
 Notes:
 - The code coverage is as close to 100% as possible (90%+)
-- The unit tests were created by ChatGPT :)
+- The unit tests were mostly created by ChatGPT :)
 
 ## Basic Usage Example
 
@@ -38,6 +38,9 @@ struct User: Decodable {
 Set up an HTTP client and add a request logger interceptor:
 
 ```swift
+// import the library
+import HTTIES
+
 // Set up the HTTP client with a logging interceptor (code for the interceptor below)
 let session = URLSession.shared
 let client = HTTPClientImpl(httpDataRequestHandler: session, interceptors: [RequestLoggerHTTPInterceptor()])
@@ -63,25 +66,43 @@ let users: [User] = try await client.data(for: usersRequest, decoding: [User].se
 print("Fetched users: \(users)")
 ```
 
-## Interceptor Example
-A simple interceptor that logs the request and response details is included as follows:
+## Response interceptor Example
+A simple response interceptor that logs the request and response details is included as follows:
 
 ```swift
-final class RequestLoggerHTTPInterceptor: HTTPInterceptor {
-    func data(for httpRequest: HTTPURLRequest, httpHandler: HTTPHandler) async throws -> (Data, HTTPURLResponse) {
-        let request = httpRequest.urlRequest
-        let (data, response) = try await httpHandler.proceed(httpRequest)
+import HTTIES
 
-        // Log the request URL, body parameters if any, the response status code, and the response body content
-        print("""
-        ----
-        Request: \(request.url?.absoluteString ?? "nil")
-        Body parameters: \(request.httpBody.map { String(decoding: $0, as: UTF8.self) } ?? "nil")
-        Response: \(response.statusCode)
-        Body content: \(String(decoding: data, as: UTF8.self))
-        ----
-        """)
-        return (data, response)
+final class RequestLoggerHTTPInterceptor: HTTPResponseInterceptor {
+	func intercept(data: Data, response: HTTPURLResponse, error: Error?, for request: URLRequest) -> (Data, HTTPURLResponse, Error?) {
+		// Consider using a logger class :)
+		print("""
+		----
+		- Request: \(request.url?.path(percentEncoded: false) ?? "nil")
+		  - Body parameters: \(request.httpBody.map { String(decoding: $0, as: UTF8.self) } ?? "nil")
+		- Response: \(response.statusCode)
+		  - Body content: \(String(decoding: data, as: UTF8.self))
+		----
+		""")
+		return (data, response, error)
+	}
+}
+```
+
+## Request interceptor Example
+A simple request interceptor that modifies the Authorization http header to include an authentication token:
+
+```swift
+import HTTIES
+
+final class AuthTokenInterceptor: RequestInterceptor {
+    var token: String
+
+    init(token: String) {
+        self.token = token
+    }
+
+    func intercept(request: inout URLRequest) {
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
     }
 }
 ```
