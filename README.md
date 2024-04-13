@@ -73,18 +73,18 @@ A simple response interceptor that logs the request and response details is incl
 import HTTIES
 
 final class RequestLoggerHTTPInterceptor: HTTPResponseInterceptor {
-	func intercept(data: Data, response: HTTPURLResponse, error: Error?, for request: URLRequest) -> (Data, HTTPURLResponse, Error?) {
-		// Consider using a logger class :)
-		print("""
-		----
-		- Request: \(request.url?.path(percentEncoded: false) ?? "nil")
-		  - Body parameters: \(request.httpBody.map { String(decoding: $0, as: UTF8.self) } ?? "nil")
-		- Response: \(response.statusCode)
-		  - Body content: \(String(decoding: data, as: UTF8.self))
-		----
-		""")
-		return (data, response, error)
-	}
+    func intercept(data: Data, response: HTTPURLResponse, error: Error?, for request: URLRequest) -> (Data, HTTPURLResponse, Error?) {
+        // Consider using a logger class :)
+        print("""
+        ----
+        - Request: \(request.url?.path(percentEncoded: false) ?? "nil")
+          - Body parameters: \(request.httpBody.map { String(decoding: $0, as: UTF8.self) } ?? "nil")
+        - Response: \(response.statusCode)
+          - Body content: \(String(decoding: data, as: UTF8.self))
+        ----
+        """)
+        return (data, response, error)
+    }
 }
 ```
 
