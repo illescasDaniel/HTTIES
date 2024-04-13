@@ -3,11 +3,14 @@ import XCTest
 
 final class MockDataHandler: HTTPDataRequestHandler {
 
+	var request: URLRequest?
+
 	var responseData: Data?
 	var response: HTTPURLResponse?
 	var responseError: Error?
 
-	func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+	func sendRequest(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+		self.request = request
 		if let responseError = responseError {
 			throw responseError
 		}
