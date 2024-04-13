@@ -3,6 +3,8 @@
 
 A small library for easy network requests.
 
+**Small project that uses this library**: [MVArchitectureDemo](https://github.com/illescasDaniel/MVArchitectureDemo)
+
 ## Features:
 - **Asynchronous Networking**: Utilize modern Swift concurrency features for async network calls.
 - **Interceptor Chain**: Customize requests and responses with multiple interceptors.
