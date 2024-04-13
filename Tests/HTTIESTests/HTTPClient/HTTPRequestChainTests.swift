@@ -10,7 +10,7 @@ final class HTTPRequestChainTests: XCTestCase {
 
 		let requestChain = HTTPRequestChain { _ in return (expectedData, expectedResponse) }
 
-		let testRequest = try HTTPURLRequest(url: URL(string: "https://example.com")!)
+		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 		let (data, response) = try await requestChain.proceed(testRequest)
 
 		XCTAssertEqual(data, expectedData)
@@ -23,7 +23,7 @@ final class HTTPRequestChainTests: XCTestCase {
 			throw URLError(.badURL)
 		}
 
-		let testRequest = try HTTPURLRequest(url: URL(string: "https://example.com")!)
+		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 
 		do {
 			let _ = try await requestChain.proceed(testRequest)

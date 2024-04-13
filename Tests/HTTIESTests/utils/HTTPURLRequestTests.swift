@@ -43,7 +43,7 @@ final class HTTPURLRequestTests: XCTestCase {
 		let queryItems = [URLQueryItem(name: "q", value: "search")]
 
 		let request = try HTTPURLRequest(url: url, queryItems: queryItems)
-		let components = URLComponents(url: request.urlRequest.url!, resolvingAgainstBaseURL: true)
+		let components = URLComponents(url: try XCTUnwrap(request.urlRequest.url), resolvingAgainstBaseURL: true)
 
 		XCTAssertEqual(components?.queryItems, queryItems)
 	}
@@ -57,7 +57,7 @@ final class HTTPURLRequestTests: XCTestCase {
 		let data = request.urlRequest.httpBody
 		XCTAssertNotNil(data)
 
-		let decodedBody = try JSONSerialization.jsonObject(with: data!, options: []) as? [String: String]
+		let decodedBody = try JSONSerialization.jsonObject(with: try XCTUnwrap(data), options: []) as? [String: String]
 		XCTAssertEqual(decodedBody, body)
 	}
 
@@ -86,7 +86,7 @@ final class HTTPURLRequestTests: XCTestCase {
 		XCTAssertNotNil(data)
 
 		let decoder = JSONDecoder()
-		let decodedObject = try decoder.decode(MockCodable.self, from: data!)
+		let decodedObject = try decoder.decode(MockCodable.self, from: try XCTUnwrap(data))
 		XCTAssertEqual(decodedObject, mockEncodable)
 	}
 }

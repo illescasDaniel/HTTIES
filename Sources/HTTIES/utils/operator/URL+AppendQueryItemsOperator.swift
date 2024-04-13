@@ -13,13 +13,30 @@ public extension Optional where Wrapped == URL {
 	}
 }
 
+public func /? (lhs: URL, rhs: [String: QueryParamValue]) -> URL {
+	return lhs.appendingQueryParameters(rhs) ?? lhs
+}
+
+public extension Optional where Wrapped == URL {
+	static func /? (lhs: Optional<URL>, rhs: [String: QueryParamValue]) -> URL? {
+		return lhs?.appendingQueryParameters(rhs)
+	}
+}
+
 // Extend URL to append query parameters
 public extension URL {
+	func appendingQueryParameters(_ parameters: [String: QueryParamValue]) -> URL? {
+		return appendingQueryParameters(parameters.mapValues(\.stringValue))
+	}
 	func appendingQueryParameters(_ parameters: [String: String?]) -> URL? {
 		guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
 			return nil
 		}
-		let queryItems = parameters.map { URLQueryItem(name: $0.key, value: $0.value) }
+		let queryItems = parameters.map { key, value in
+			URLQueryItem(name: key, value: value)
+		}.sorted { lhs, rhs in
+			lhs.name < rhs.name
+		}
 		components.queryItems = (components.queryItems ?? []) + queryItems
 		return components.url ?? nil
 	}

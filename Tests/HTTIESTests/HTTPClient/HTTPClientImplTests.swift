@@ -12,6 +12,12 @@ final class HTTPClientImplTests: XCTestCase {
 		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, interceptors: [])
 	}
 
+	override func tearDown() {
+		super.tearDown()
+		mockDataHandler = nil
+		httpClient = nil
+	}
+
 	// Test a successful data request without interceptors
 	func testSuccessfulDataRequest() async throws {
 		mockDataHandler.responseData = Data("mock response".utf8)
@@ -38,13 +44,13 @@ final class HTTPClientImplTests: XCTestCase {
 
 	// Test a data request with interceptors
 	func testDataRequestWithInterceptors() async throws {
-		// Assuming MockInterceptor implementation from previous context
-		let mockInterceptor = MockInterceptor()
-		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, interceptors: [mockInterceptor])
-
 		// Set up mock data handler for a successful response
 		mockDataHandler.responseData = Data("mock response".utf8)
 		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
+
+		// Assuming MockInterceptor implementation from previous context
+		let mockInterceptor = MockInterceptor()
+		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler, interceptors: [mockInterceptor])
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 		let (data, _) = try await httpClient.data(for: testRequest)
@@ -54,7 +60,7 @@ final class HTTPClientImplTests: XCTestCase {
 
 	// Test decoding data into a Decodable object
 	func testDataDecoding() async throws {
-		mockDataHandler.responseData = "{\"property\": \"value\"}".data(using: .utf8)
+		mockDataHandler.responseData = Data(#"{"property": "value"}"#.utf8)
 		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
@@ -64,7 +70,7 @@ final class HTTPClientImplTests: XCTestCase {
 
 	// Test failing decoding data into a Decodable object
 	func testFailingDataDecoding() async throws {
-		mockDataHandler.responseData = "{\"property\": \"value\"}".data(using: .utf8)
+		mockDataHandler.responseData = Data(#"{"property": "value"}"#.utf8)
 		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 400, httpVersion: nil, headerFields: nil)
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
