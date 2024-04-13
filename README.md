@@ -7,7 +7,7 @@ A small library for easy network requests.
 
 ## Features:
 - **Asynchronous Networking**: Utilize modern Swift concurrency features for async network calls.
-- **Interceptor Chain**: Customize requests and responses with multiple interceptors.
+- **Request and Response Interceptors**: Customize requests and responses with multiple interceptors.
 - **Generic Decoding**: Automatically decode JSON responses into Swift types.
 - **HTTP Method Enum**: Easily specify HTTP methods with a convenient enum.
 - **URL Operator Overloading**: Simplify URL construction with custom operators.
