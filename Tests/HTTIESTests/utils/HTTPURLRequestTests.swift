@@ -12,6 +12,15 @@ final class HTTPURLRequestTests: XCTestCase {
 		XCTAssertEqual(request.urlRequest.httpMethod, "GET")
 	}
 
+	// Test initializer with URLRequest
+	func testInitWithURLRequest() throws {
+		let url = try XCTUnwrap(URL(string: "https://example.com"))
+		let request = HTTPURLRequest(urlRequest: URLRequest(url: url))
+
+		XCTAssertEqual(request.urlRequest.url, url)
+		XCTAssertEqual(request.urlRequest.httpMethod, "GET")
+	}
+
 	// Test initializer with URL, HTTP method, and headers
 	func testInitWithURLHTTPMethodAndHeaders() throws {
 		let url = try XCTUnwrap(URL(string: "https://example.com"))

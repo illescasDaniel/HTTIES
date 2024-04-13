@@ -1,7 +1,7 @@
 import Foundation
 @testable import HTTIES
 
-final class MockResponseInterceptor: HTTPResponseInterceptor {
+final class MockResponseInterceptor: HTTPInoutResponseInterceptor {
 	var mockData: Data?
 	var mockResponse: HTTPURLResponse?
 	var mockError: Error?

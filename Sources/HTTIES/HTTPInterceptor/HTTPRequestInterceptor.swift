@@ -1,5 +1,5 @@
 import Foundation
 
 public protocol HTTPRequestInterceptor {
-	func intercept(request: inout URLRequest) async throws
+	func intercept(request: URLRequest) async throws -> URLRequest
 }

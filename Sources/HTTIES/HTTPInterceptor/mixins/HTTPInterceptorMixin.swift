@@ -6,18 +6,17 @@ public protocol HTTPInterceptorMixin: HTTPRequestInterceptorMixin, HTTPResponseI
 }
 extension HTTPInterceptorMixin {
 	public func sendRequest(_ httpURLRequest: HTTPURLRequest) async throws -> (Data, HTTPURLResponse) {
-		var mutableRequest = httpURLRequest.urlRequest
-
 		// Apply request interceptors
-		try await self.applyInterceptors(toMutableRequest: &mutableRequest)
+		let request = try await self.applyInterceptors(request: httpURLRequest.urlRequest)
 
 		// Execute the request
-		var (data, response) = try await sendRequestWithoutInterceptors(mutableRequest)
-		var error: Error? = nil
+		let requestResult = try await sendRequestWithoutInterceptors(request)
 
 		// Apply response interceptors
-		self.applyInterceptors(
-			toData: &data, response: &response, error: &error,
+		let (data, response, error) = try await self.applyInterceptors(
+			data: requestResult.0,
+			response: requestResult.1,
+			error: nil,
 			for: httpURLRequest.urlRequest
 		)
 

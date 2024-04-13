@@ -50,25 +50,40 @@ class URLCustomOperatorsTests: XCTestCase {
 		XCTAssertEqual(fullURL.absoluteString, "https://example.com?enabled&items=4,2,3,4.4,hi&other=2&param=value&param2=1&zzz=asdf%20asdf")
 	}
 
+	func testAppendingMultipleQueryParametersToURL() throws {
+		let baseURL = try XCTUnwrap(URL(string: "https://example.com"))
+		let fullURL = baseURL /? ["param": "value", "other": 2] /? ["new": true]
+		let sortedQueryItems = try XCTUnwrap(URLComponents(string: fullURL.absoluteString)?.queryItems?.sorted(by: { $0.name < $1.name }))
+		XCTAssertEqual(sortedQueryItems, [
+			.init(name: "new", value: "1"),
+			.init(name: "other", value: "2"),
+			.init(name: "param", value: "value")
+		])
+		XCTAssertEqual(fullURL.absoluteString, "https://example.com?new=1&other=2&param=value")
+	}
+
 	func testAppendingLiteralVarQueryParametersToURL() throws {
+		class Fake { init() {}}
 		let baseURL = try XCTUnwrap(URL(string: "https://example.com"))
 		let valueFromVariable = "asdf asdf"
-		let fullURL = baseURL /? ["param": .value("value"), "other": .value(2), "param2": .value(true), "enabled": nil, "items": .value([4,2,3,4.4,"hi"]),
+		let fullURL = baseURL /? ["param": .value("value"), "other": .value(2), "param2": .value(true), "param3": .value(false), "enabled": nil, "items": .value([4,2,3,4.4,"hi"]),
 								  "zzz": .value(valueFromVariable), "ab": .value(CustomStringConvertibleMock(value: "a")),
-								  "code": .value(StatusCode.ok), "path": .value(PathComponent.about)]
+								  "code": .value(StatusCode.ok), "path": .value(PathComponent.about), "fake": .value(Fake())]
 		let sortedQueryItems = try XCTUnwrap(URLComponents(string: fullURL.absoluteString)?.queryItems?.sorted(by: { $0.name < $1.name }))
 		XCTAssertEqual(sortedQueryItems, [
 			.init(name: "ab", value: "a"),
 			.init(name: "code", value: "200"),
 			.init(name: "enabled", value: nil),
+			.init(name: "fake", value: nil),
 			.init(name: "items", value: "4,2,3,4.4,hi"),
 			.init(name: "other", value: "2"),
 			.init(name: "param", value: "value"),
 			.init(name: "param2", value: "1"),
+			.init(name: "param3", value: "0"),
 			.init(name: "path", value: "about"),
 			.init(name: "zzz", value: "asdf asdf")
 		])
-		XCTAssertEqual(fullURL.absoluteString, "https://example.com?ab=a&code=200&enabled&items=4,2,3,4.4,hi&other=2&param=value&param2=1&path=about&zzz=asdf%20asdf")
+		XCTAssertEqual(fullURL.absoluteString, "https://example.com?ab=a&code=200&enabled&fake&items=4,2,3,4.4,hi&other=2&param=value&param2=1&param3=0&path=about&zzz=asdf%20asdf")
 	}
 
 	func testAppendingLiteralQueryParametersToOptionalURL() throws {

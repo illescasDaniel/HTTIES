@@ -2,17 +2,19 @@ import Foundation
 
 public protocol HTTPResponseInterceptorMixin {
 	var responseInterceptors: [any HTTPResponseInterceptor] { get }
-	func applyInterceptors(toData data: inout Data, response: inout HTTPURLResponse, error: inout Error?, for urlRequest: URLRequest)
+	func applyInterceptors(data: Data, response: HTTPURLResponse, error: Error?, for urlRequest: URLRequest) async throws -> (Data, HTTPURLResponse, Error?)
 }
 extension HTTPResponseInterceptorMixin {
-	public func applyInterceptors(toData data: inout Data, response: inout HTTPURLResponse, error: inout Error?, for urlRequest: URLRequest) {
+	public func applyInterceptors(data: Data, response: HTTPURLResponse, error: Error?, for urlRequest: URLRequest) async throws -> (Data, HTTPURLResponse, Error?) {
+		var (data, response, error) = (data, response, error)
 		for interceptor in responseInterceptors {
-			interceptor.intercept(
-				data: &data,
-				response: &response,
-				error: &error,
+			(data, response, error) = try await interceptor.intercept(
+				data: data,
+				response: response,
+				error: error,
 				for: urlRequest
 			)
 		}
+		return (data, response, error)
 	}
 }

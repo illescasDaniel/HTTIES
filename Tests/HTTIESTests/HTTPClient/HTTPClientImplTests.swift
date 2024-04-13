@@ -165,4 +165,29 @@ final class HTTPClientImplTests: XCTestCase {
 			}
 		}
 	}
+
+	func testRequestWithRealMockURLSessionFailingToCastResponse() async throws {
+		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
+		let expectedResult = (Data(), URLResponse())
+		let urlSessionDataRequestHandler = MockURLSessionDataRequestHandler()
+		urlSessionDataRequestHandler.result = expectedResult
+		httpClient = HTTPClientImpl(httpDataRequestHandler: urlSessionDataRequestHandler)
+		do {
+			_ = try await httpClient.sendRequest(testRequest)
+			XCTFail()
+		} catch {
+			XCTAssertEqual(error as? URLError, URLError(.cannotParseResponse))
+		}
+	}
+
+	func testRequestWithRealMockURLSession() async throws {
+		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
+		let expectedResult = (Data(), HTTPURLResponse())
+		let urlSessionDataRequestHandler = MockURLSessionDataRequestHandler()
+		urlSessionDataRequestHandler.result = expectedResult
+		httpClient = HTTPClientImpl(httpDataRequestHandler: urlSessionDataRequestHandler)
+		let result = try await httpClient.sendRequest(testRequest)
+		XCTAssertEqual(result.0, expectedResult.0)
+		XCTAssertEqual(result.1, expectedResult.1)
+	}
 }
