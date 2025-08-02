@@ -1,6 +1,6 @@
 import Foundation
 
-public struct HTTPURLRequest {
+public struct HTTPURLRequest: Sendable {
 	public let urlRequest: URLRequest
 
 	public init(urlRequest: URLRequest) {
