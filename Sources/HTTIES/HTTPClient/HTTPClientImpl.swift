@@ -1,9 +1,9 @@
 import Foundation
 
-public final class HTTPClientImpl: HTTPClient, HTTPInterceptorMixin {
+public struct HTTPClientImpl: HTTPClient, HTTPInterceptorMixin {
 	private let httpDataRequestHandler: any HTTPDataRequestHandler
-	public var requestInterceptors: [any HTTPRequestInterceptor]
-	public var responseInterceptors: [any HTTPResponseInterceptor]
+	public let requestInterceptors: [any HTTPRequestInterceptor]
+	public let responseInterceptors: [any HTTPResponseInterceptor]
 
 	public init(
 		httpDataRequestHandler: any HTTPDataRequestHandler,

@@ -69,8 +69,10 @@ final class HTTPClientImplTests: XCTestCase {
 		// Assuming MockInterceptor implementation from previous context
 		let mockInterceptor = MockRequestInterceptor()
 		mockInterceptor.mockRequest = URLRequest(url: try XCTUnwrap(URL(string: "https://example2.com")))
-		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler)
-		httpClient.requestInterceptors.append(mockInterceptor)
+		httpClient = HTTPClientImpl(
+			httpDataRequestHandler: mockDataHandler,
+			requestInterceptors: [mockInterceptor]
+		)
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 		let (data, _) = try await httpClient.sendRequest(testRequest)
@@ -107,8 +109,10 @@ final class HTTPClientImplTests: XCTestCase {
 		let mockInterceptor = MockResponseInterceptor()
 		mockInterceptor.mockData = Data([1])
 		mockInterceptor.mockResponse = try XCTUnwrap(HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example2.com")), statusCode: 400, httpVersion: nil, headerFields: nil))
-		httpClient = HTTPClientImpl(httpDataRequestHandler: mockDataHandler)
-		httpClient.responseInterceptors.append(mockInterceptor)
+		httpClient = HTTPClientImpl(
+			httpDataRequestHandler: mockDataHandler,
+			responseInterceptors: [mockInterceptor]
+		)
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 		let (data, response) = try await httpClient.sendRequest(testRequest)

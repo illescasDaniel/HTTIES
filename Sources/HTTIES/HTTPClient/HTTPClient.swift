@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol HTTPClient {
+public protocol HTTPClient: Sendable {
 	func sendRequest(_ httpURLRequest: HTTPURLRequest) async throws -> (Data, HTTPURLResponse)
 
 	func sendRequest<T: Decodable>(

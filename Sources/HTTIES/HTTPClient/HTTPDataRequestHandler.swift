@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol HTTPDataRequestHandler {
+public protocol HTTPDataRequestHandler: Sendable {
 	func sendRequest(_ request: URLRequest) async throws -> (Data, HTTPURLResponse)
 }
 
