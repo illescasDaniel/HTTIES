@@ -1,5 +1,5 @@
 //
-//  JSONDictionaryEncoder 2.swift
+//  JSONBodyEncoder.swift
 //  HTTIES
 //
 //  Created by Daniel Illescas Romero on 3/12/25.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct JSONDictionaryEncoder: BodyEncoder {
+public struct JSONBodyEncoder: BodyEncoder {
 
 	public let options: JSONSerialization.WritingOptions
 

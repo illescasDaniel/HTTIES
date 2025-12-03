@@ -61,7 +61,7 @@ final class HTTPURLRequestTests: XCTestCase {
 	func testInitWithURLAndBodyDictionary() throws {
 		let url = try XCTUnwrap(URL(string: "https://example.com"))
 		let body = ["key": "value"]
-		let request = try HTTPURLRequest(url: url, body: body, encoder: JSONDictionaryEncoder())
+		let request = try HTTPURLRequest(url: url, body: body, encoder: JSONBodyEncoder())
 
 		let data = request.urlRequest.httpBody
 		XCTAssertNotNil(data)
@@ -75,7 +75,7 @@ final class HTTPURLRequestTests: XCTestCase {
 		let url = try XCTUnwrap(URL(string: "https://example.com"))
 		let body = ["key": Date()] // Using Date which is not a valid JSON object
 
-		XCTAssertThrowsError(try HTTPURLRequest(url: url, body: body, encoder: JSONDictionaryEncoder())) { error in
+		XCTAssertThrowsError(try HTTPURLRequest(url: url, body: body, encoder: JSONBodyEncoder())) { error in
 			XCTAssertTrue(error is AppNetworkRequestError)
 			if case AppNetworkRequestError.invalidObject(let jsonObject) = error, let jsonDict = jsonObject as? [String: Any] {
 				XCTAssertNotNil(jsonDict["key"] as? Date)
@@ -143,7 +143,7 @@ final class HTTPURLRequestTests: XCTestCase {
 		let data = Data([1,2,3])
 
 		do {
-			_ = try HTTPURLRequest(url: url, body: data, encoder: JSONDictionaryEncoder())
+			_ = try HTTPURLRequest(url: url, body: data, encoder: JSONBodyEncoder())
 			XCTFail("Should fail")
 		} catch let AppNetworkRequestError.invalidObject(object) {
 			XCTAssertEqual(data, object as? Data)
