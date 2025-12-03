@@ -144,7 +144,7 @@ final class HTTPClientImplTests: XCTestCase {
 		mockDataHandler.response = HTTPURLResponse(url: try XCTUnwrap(URL(string: "https://example.com")), statusCode: 200, httpVersion: nil, headerFields: nil)
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
-		let decodedObject: MockCodable = try await httpClient.sendRequest(testRequest, decoding: MockCodable.self)
+		let decodedObject: MockCodable = try await httpClient.sendRequest(testRequest, decoding: MockCodable.self, decoder: JSONDecoder())
 		XCTAssertEqual(decodedObject.property, "value")
 	}
 
@@ -155,7 +155,7 @@ final class HTTPClientImplTests: XCTestCase {
 
 		let testRequest = try HTTPURLRequest(url: try XCTUnwrap(URL(string: "https://example.com")))
 		do {
-			_ = try await httpClient.sendRequest(testRequest, decoding: MockCodable.self)
+			_ = try await httpClient.sendRequest(testRequest, decoding: MockCodable.self, decoder: JSONDecoder())
 			XCTFail("It should throw")
 		} catch {
 			if case AppNetworkResponseError.unexpected(let statusCode) = error {

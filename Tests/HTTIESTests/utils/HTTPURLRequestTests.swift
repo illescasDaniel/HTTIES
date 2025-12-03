@@ -89,7 +89,7 @@ final class HTTPURLRequestTests: XCTestCase {
 	func testInitWithURLAndEncodableBody() throws {
 		let url = try XCTUnwrap(URL(string: "https://example.com"))
 		let mockEncodable = MockCodable(property: "value")
-		let request = try HTTPURLRequest(url: url, bodyEncodable: mockEncodable)
+		let request = try HTTPURLRequest(url: url, bodyEncodable: mockEncodable, encoder: JSONEncoder())
 
 		let data = request.urlRequest.httpBody
 		XCTAssertNotNil(data)

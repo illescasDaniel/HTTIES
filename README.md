@@ -60,7 +60,7 @@ let endpointURL = baseURL / "api" / "v1" / "users" /? ["sortBy": "name", "ascend
 ```swift
 // Perform a GET request and decode the JSON response into an array of `User`
 let usersRequest = try HTTPURLRequest(url: endpointURL)
-let users: [User] = try await client.data(for: usersRequest, decoding: [User].self)
+let users: [User] = try await client.data(for: usersRequest, decoding: [User].self, decoder: JSONEncoder())
 
 // Handle the fetched users
 print("Fetched users: \(users)")

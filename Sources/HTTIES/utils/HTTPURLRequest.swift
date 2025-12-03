@@ -54,14 +54,14 @@ public struct HTTPURLRequest: Sendable {
 		url: URL,
 		httpMethod: HTTPMethod = .get,
 		bodyEncodable body: T,
-		jsonEncoder: JSONEncoder = JSONEncoder(),
+		encoder: any TopLevelEncoder,
 		queryItems: [URLQueryItem] = [],
 		headers: [String: String] = [:]
 	) throws {
 		try self.init(
 			url: url,
 			httpMethod: httpMethod,
-			body: try jsonEncoder.encode(body),
+			body: try encoder.encode(body),
 			queryItems: queryItems,
 			headers: headers
 		)
