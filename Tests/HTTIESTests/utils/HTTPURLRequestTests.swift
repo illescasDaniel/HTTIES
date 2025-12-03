@@ -61,7 +61,7 @@ final class HTTPURLRequestTests: XCTestCase {
 	func testInitWithURLAndBodyDictionary() throws {
 		let url = try XCTUnwrap(URL(string: "https://example.com"))
 		let body = ["key": "value"]
-		let request = try HTTPURLRequest(url: url, bodyDictionary: body)
+		let request = try HTTPURLRequest(url: url, body: body, encoder: JSONDictionaryEncoder())
 
 		let data = request.urlRequest.httpBody
 		XCTAssertNotNil(data)
@@ -75,10 +75,10 @@ final class HTTPURLRequestTests: XCTestCase {
 		let url = try XCTUnwrap(URL(string: "https://example.com"))
 		let body = ["key": Date()] // Using Date which is not a valid JSON object
 
-		XCTAssertThrowsError(try HTTPURLRequest(url: url, bodyDictionary: body)) { error in
+		XCTAssertThrowsError(try HTTPURLRequest(url: url, body: body, encoder: JSONDictionaryEncoder())) { error in
 			XCTAssertTrue(error is AppNetworkRequestError)
-			if case AppNetworkRequestError.invalidJSONObject(let jsonObject) = error {
-				XCTAssertNotNil(jsonObject["key"] as? Date)
+			if case AppNetworkRequestError.invalidObject(let jsonObject) = error, let jsonDict = jsonObject as? [String: Any] {
+				XCTAssertNotNil(jsonDict["key"] as? Date)
 			} else {
 				XCTFail("Expected AppNetworkRequestError.invalidJSONObject error")
 			}
@@ -97,5 +97,56 @@ final class HTTPURLRequestTests: XCTestCase {
 		let decoder = JSONDecoder()
 		let decodedObject = try decoder.decode(MockCodable.self, from: try XCTUnwrap(data))
 		XCTAssertEqual(decodedObject, mockEncodable)
+	}
+
+	// Test initializer with URL and encodable body using the generic init
+	func testInitWithURLAndEncodableBodyUsingGenericInit() throws {
+		let url = try XCTUnwrap(URL(string: "https://example.com"))
+		let mockEncodable = MockCodable(property: "value")
+		let request = try HTTPURLRequest(url: url, body: mockEncodable, encoder: JSONEncoder())
+
+		let data = request.urlRequest.httpBody
+		XCTAssertNotNil(data)
+
+		let decoder = JSONDecoder()
+		let decodedObject = try decoder.decode(MockCodable.self, from: try XCTUnwrap(data))
+		XCTAssertEqual(decodedObject, mockEncodable)
+	}
+
+	// Test initializer with URL and not encodable body using the generic init and JSONEncoder
+	func testInitWithURLAndNotEncodableBodyUsingGenericInit() throws {
+		let url = try XCTUnwrap(URL(string: "https://example.com"))
+		class Invalid {}
+		let invalidObject = Invalid()
+
+		do {
+			_ = try HTTPURLRequest(url: url, body: invalidObject, encoder: JSONEncoder())
+			XCTFail("It shouldn't work")
+		} catch let AppNetworkRequestError.invalidObject(object) {
+			print(invalidObject === object as AnyObject)
+		}
+	}
+
+	// Test initializer with raw data using the dedicated init
+	func testInitWithDataUsingDedicatedInit() throws {
+		let url = try XCTUnwrap(URL(string: "https://example.com"))
+		let data = Data([1,2,3])
+		let request = try HTTPURLRequest(url: url, body: data)
+
+		let httpBodyData = request.urlRequest.httpBody
+		XCTAssertEqual(data, httpBodyData)
+	}
+
+	// Test initializer with raw data using the generic init with an incorrect encoder
+	func testInitWithDataUsingGenericInit() throws {
+		let url = try XCTUnwrap(URL(string: "https://example.com"))
+		let data = Data([1,2,3])
+
+		do {
+			_ = try HTTPURLRequest(url: url, body: data, encoder: JSONDictionaryEncoder())
+			XCTFail("Should fail")
+		} catch let AppNetworkRequestError.invalidObject(object) {
+			XCTAssertEqual(data, object as? Data)
+		}
 	}
 }

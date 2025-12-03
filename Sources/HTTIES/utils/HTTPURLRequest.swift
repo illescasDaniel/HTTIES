@@ -34,17 +34,18 @@ public struct HTTPURLRequest: Sendable {
 	public init(
 		url: URL,
 		httpMethod: HTTPMethod = .get,
-		bodyDictionary body: [String: Any],
+		body: Any,
+		encoder: any BodyEncoder,
 		queryItems: [URLQueryItem] = [],
 		headers: [String: String] = [:]
 	) throws {
-		guard JSONSerialization.isValidJSONObject(body) else {
-			throw AppNetworkRequestError.invalidJSONObject(body)
+		guard encoder.isValid(body) else {
+			throw AppNetworkRequestError.invalidObject(body)
 		}
 		try self.init(
 			url: url,
 			httpMethod: httpMethod,
-			body: try JSONSerialization.data(withJSONObject: body),
+			body: try encoder.encode(body),
 			queryItems: queryItems,
 			headers: headers
 		)
@@ -54,7 +55,7 @@ public struct HTTPURLRequest: Sendable {
 		url: URL,
 		httpMethod: HTTPMethod = .get,
 		bodyEncodable body: T,
-		encoder: any TopLevelEncoder,
+		encoder: any EncodableBodyEncoder,
 		queryItems: [URLQueryItem] = [],
 		headers: [String: String] = [:]
 	) throws {
