@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "F5C523B1-E981-4A30-B189-574918B67408",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "HTTIESTests",
+        "name" : "HTTIESTests"
+      }
+    }
+  ],
+  "version" : 1
+}
